@@ -1,0 +1,35 @@
+{
+  "products": [
+    {
+      "type": "Electronics",
+      "name": "Laptop",
+      "category": "Electronics",
+      "price": 1200.0,
+      "stock": 3,
+      "manufacturer": "TechCorp",
+      "warranty_years": 2,
+      "has_wifi": true
+    },
+    {
+      "type": "Clothing",
+      "name": "Jacket",
+      "category": "Clothing",
+      "price": 150.0,
+      "stock": 19,
+      "manufacturer": "Warm&Co",
+      "size": "L",
+      "material": "Wool"
+    },
+    {
+      "type": "Furniture",
+      "name": "Desk",
+      "category": "Furniture",
+      "price": 300.0,
+      "stock": 10,
+      "manufacturer": "Furni",
+      "weight": 55.0,
+      "assembled": false
+    }
+  ],
+  "orders": []
+}
