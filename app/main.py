@@ -254,6 +254,31 @@ class ProductTableModel(QAbstractTableModel):
             return self.headers()[section]
         return section + 1
 
+    def sort(self, column: int, order: Qt.SortOrder = Qt.AscendingOrder) -> None:  # type: ignore[override]
+        if not self._products:
+            return
+        reverse = order == Qt.DescendingOrder
+        col = max(0, min(column, self.columnCount() - 1))
+
+        def key_func(p: Product):
+            if col == 0:
+                return p.name
+            if col == 1:
+                return p.category
+            if col == 2:
+                return p.price
+            if col == 3:
+                return p.stock
+            if col == 4:
+                return p.manufacturer
+            if col == 5:
+                return p.discount_price()
+            return p.name
+
+        self.layoutAboutToBeChanged.emit()
+        self._products.sort(key=key_func, reverse=reverse)
+        self.layoutChanged.emit()
+
     def add_product(self, product: Product) -> None:
         self.beginInsertRows(QModelIndex(), len(self._products), len(self._products))
         self._products.append(product)
@@ -541,6 +566,7 @@ class MainWindow(QMainWindow):
         self.table = QTableView()
         self.table.setModel(self.product_model)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.setSortingEnabled(True)
         table_group.addWidget(self.table)
 
         btn_row = QHBoxLayout()
