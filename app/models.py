@@ -213,8 +213,10 @@ class Clothing(Product):
         self.material = material
 
     def specific_discount_rate(self) -> float:
-        seasonal_bonus = 0.04 if self.material.lower() == "wool" else 0.02
-        return seasonal_bonus
+        m = str(self.material).strip().lower()
+        if m in ("wool", "вовна"):
+            return 0.04
+        return 0.02
 
     def to_dict(self) -> Dict[str, Any]:
         payload = super().to_dict()
@@ -395,9 +397,9 @@ class Order:
         self.payment = payment
         self.status = OrderStatus.PAID
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self, include_customer: bool = True) -> Dict[str, Any]:
         return {
-            "customer": self.customer.to_dict(),
+            "customer": self.customer.to_dict(include_history=False) if include_customer else {"full_name": self.customer.full_name, "contact": self.customer.contact},
             "items": [
                 {"product": item.product.to_dict(), "quantity": item.quantity} for item in self.items
             ],
@@ -454,12 +456,14 @@ class Customer:
     def total_spent(self) -> float:
         return sum(order.total_amount() for order in self._history)
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
+    def to_dict(self, include_history: bool = False) -> Dict[str, Any]:
+        data = {
             "full_name": self.full_name,
             "contact": self.contact,
-            "history": [order.to_dict() for order in self._history],
         }
+        if include_history:
+            data["history"] = [order.to_dict(include_customer=False) for order in self._history]
+        return data
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Customer":
@@ -513,7 +517,7 @@ class StoreManager:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "products": [p.to_dict() for p in self._products],
-            "orders": [o.to_dict() for o in self._orders],
+            "orders": [o.to_dict(include_customer=True) for o in self._orders],
         }
 
     @classmethod

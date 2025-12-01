@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import Callable, Dict, List, Optional
 
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 from PyQt5.QtWidgets import (
@@ -48,20 +48,179 @@ from models import (
 APP_DIR = Path(__file__).resolve().parent
 DATA_DIR = APP_DIR / "data"
 
+# --- Localization ---
+LANG: Dict[str, Dict[str, str]] = {
+    "en": {
+        "window_title": "Online Store",
+        "add": "Add",
+        "edit": "Edit",
+        "delete": "Delete",
+        "add_cart": "Add to cart",
+        "place_order": "Place order",
+        "clear_cart": "Clear cart",
+        "generate_report": "Generate sales report",
+        "cart": "Cart",
+        "reports": "Reports",
+        "saved": "Saved",
+        "loaded": "Loaded",
+        "save_json": "Save JSON",
+        "load_json": "Load JSON",
+        "save_bin": "Save Binary",
+        "load_bin": "Load Binary",
+        "save_xml": "Save XML",
+        "load_xml": "Load XML",
+        "total": "Total",
+        "select_edit": "Select a product to edit.",
+        "select_delete": "Select a product to delete.",
+        "select_add": "Select a product to add to cart.",
+        "delete_confirm": "Remove selected product?",
+        "cart_empty": "Add items to cart first.",
+        "order_created": "Order created",
+        "save_error": "Save error",
+        "load_error": "Load error",
+        "data_saved": "Data saved to {path}",
+        "data_loaded": "Data loaded from {path}",
+        "orders_label": "Orders",
+        "revenue_label": "Revenue",
+        "status_new": "New",
+        "status_paid": "Paid",
+        "status_shipped": "Shipped",
+        "qty": "Qty",
+        "subtotal": "Subtotal",
+        "name_required": "Name is required",
+        "unknown": "Unknown",
+        "guest": "Guest",
+        "default_material": "Cotton",
+        "validation_error": "Validation error",
+        "cannot_add": "Cannot add",
+        "discounted": "Discounted",
+        "manufacturer": "Manufacturer",
+        "price": "Price",
+        "stock": "Stock",
+        "category": "Category",
+        "name": "Name",
+        "category_electronics": "Electronics",
+        "category_clothing": "Clothing",
+        "category_furniture": "Furniture",
+        "status": "Initial status:",
+        "shipping": "Shipping:",
+        "payment": "Payment:",
+        "customer_name": "Customer name:",
+        "contact": "Contact info:",
+        "delivery": "Delivery:",
+        "standard_delivery": "Standard delivery",
+        "express_delivery": "Express delivery",
+        "warranty": "Warranty (years):",
+        "wifi": "Wi-Fi enabled",
+        "size": "Size:",
+        "material": "Material:",
+        "weight": "Weight (kg):",
+        "assembled": "Delivered assembled",
+        "payment_cash": "Cash",
+        "payment_card": "Card",
+        "language": "Language",
+    },
+    "uk": {
+        "window_title": "Онлайн-магазин",
+        "add": "Додати",
+        "edit": "Редагувати",
+        "delete": "Видалити",
+        "add_cart": "До кошика",
+        "place_order": "Оформити замовлення",
+        "clear_cart": "Очистити кошик",
+        "generate_report": "Звіт про продажі",
+        "cart": "Кошик",
+        "reports": "Звіти",
+        "saved": "Збережено",
+        "loaded": "Завантажено",
+        "save_json": "Зберегти JSON",
+        "load_json": "Завантажити JSON",
+        "save_bin": "Зберегти Binary",
+        "load_bin": "Завантажити Binary",
+        "save_xml": "Зберегти XML",
+        "load_xml": "Завантажити XML",
+        "total": "Разом",
+        "select_edit": "Оберіть товар для редагування.",
+        "select_delete": "Оберіть товар для видалення.",
+        "select_add": "Оберіть товар для додавання до кошика.",
+        "delete_confirm": "Видалити вибраний товар?",
+        "cart_empty": "Спершу додайте товари до кошика.",
+        "order_created": "Замовлення створено",
+        "save_error": "Помилка збереження",
+        "load_error": "Помилка завантаження",
+        "data_saved": "Дані збережено у {path}",
+        "data_loaded": "Дані завантажено з {path}",
+        "orders_label": "Замовлення",
+        "revenue_label": "Дохід",
+        "status_new": "Новий",
+        "status_paid": "Оплачено",
+        "status_shipped": "Відправлено",
+        "qty": "К-сть",
+        "subtotal": "Сума",
+        "name_required": "Потрібна назва товару",
+        "unknown": "Невідомо",
+        "guest": "Гість",
+        "default_material": "Бавовна",
+        "validation_error": "Помилка валідації",
+        "cannot_add": "Не вдалося додати",
+        "discounted": "Ціна зі знижкою",
+        "manufacturer": "Виробник",
+        "price": "Ціна",
+        "stock": "Залишок",
+        "category": "Категорія",
+        "name": "Назва",
+        "category_electronics": "Електроніка",
+        "category_clothing": "Одяг",
+        "category_furniture": "Меблі",
+        "status": "Статус:",
+        "shipping": "Доставка:",
+        "payment": "Оплата:",
+        "customer_name": "ПІБ клієнта:",
+        "contact": "Контакти:",
+        "delivery": "Доставка:",
+        "standard_delivery": "Стандартна доставка",
+        "express_delivery": "Експрес-доставка",
+        "warranty": "Гарантія (роки):",
+        "wifi": "Є Wi‑Fi",
+        "size": "Розмір:",
+        "material": "Матеріал:",
+        "weight": "Вага (кг):",
+        "assembled": "Постачається зібраним",
+        "payment_cash": "Готівка",
+        "payment_card": "Картка",
+        "language": "Мова",
+    },
+}
+
+
+def make_translator(lang: str) -> Callable[[str], str]:
+    current = LANG.get(lang, LANG["en"])
+    return lambda key: current.get(key, key)
+
 
 # ---------- Table models ----------
 class ProductTableModel(QAbstractTableModel):
-    HEADERS = ["Name", "Category", "Price", "Stock", "Manufacturer", "Discounted"]
-
-    def __init__(self, products: List[Product]) -> None:
+    def __init__(self, products: List[Product], translate: Callable[[str], str]) -> None:
         super().__init__()
         self._products = products
+        self._translate = translate
+
+    def headers(self) -> List[str]:
+        t = self._translate
+        return [
+            t("name"),
+            t("category"),
+            t("price"),
+            t("stock"),
+            t("manufacturer"),
+            t("discounted"),
+        ]
 
     def rowCount(self, parent=QModelIndex()) -> int:  # type: ignore[override]
         return len(self._products)
 
     def columnCount(self, parent=QModelIndex()) -> int:  # type: ignore[override]
-        return len(self.HEADERS)
+        return len(self.headers())
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
         if not index.isValid():
@@ -78,7 +237,10 @@ class ProductTableModel(QAbstractTableModel):
             if col == 3:
                 return product.stock
             if col == 4:
-                return product.manufacturer
+                manu = str(product.manufacturer)
+                if manu.strip().lower() in ("unknown", "невідомо"):
+                    return self._translate("unknown")
+                return manu
             if col == 5:
                 return f"{product.discount_price():.2f}"
         if role == Qt.TextAlignmentRole:
@@ -89,7 +251,7 @@ class ProductTableModel(QAbstractTableModel):
         if role != Qt.DisplayRole:
             return QVariant()
         if orientation == Qt.Horizontal:
-            return self.HEADERS[section]
+            return self.headers()[section]
         return section + 1
 
     def add_product(self, product: Product) -> None:
@@ -118,17 +280,20 @@ class ProductTableModel(QAbstractTableModel):
 
 
 class CartTableModel(QAbstractTableModel):
-    HEADERS = ["Name", "Qty", "Subtotal"]
-
-    def __init__(self, cart: ShoppingCart) -> None:
+    def __init__(self, cart: ShoppingCart, translate: Callable[[str], str]) -> None:
         super().__init__()
         self.cart = cart
+        self._translate = translate
+
+    def headers(self) -> List[str]:
+        t = self._translate
+        return [t("name"), t("qty"), t("subtotal")]
 
     def rowCount(self, parent=QModelIndex()) -> int:  # type: ignore[override]
         return len(self.cart.all_items())
 
     def columnCount(self, parent=QModelIndex()) -> int:  # type: ignore[override]
-        return len(self.HEADERS)
+        return len(self.headers())
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
         if not index.isValid():
@@ -151,7 +316,7 @@ class CartTableModel(QAbstractTableModel):
         if role != Qt.DisplayRole:
             return QVariant()
         if orientation == Qt.Horizontal:
-            return self.HEADERS[section]
+            return self.headers()[section]
         return section + 1
 
     def refresh(self) -> None:
@@ -163,14 +328,17 @@ class CartTableModel(QAbstractTableModel):
 
 # ---------- Dialogs ----------
 class ProductDialog(QDialog):
-    def __init__(self, parent: QWidget = None, product: Optional[Product] = None) -> None:
+    def __init__(self, parent: QWidget = None, product: Optional[Product] = None, translate: Callable[[str], str] = lambda k: k) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Add / Edit Product")
+        self._ = translate
+        self.setWindowTitle(self._("add") + " / " + self._("edit"))
         self.selected_category = "Electronics"
 
         self.name_edit = QLineEdit()
         self.category_combo = QComboBox()
-        self.category_combo.addItems(["Electronics", "Clothing", "Furniture"])
+        self.category_combo.addItem(self._("category_electronics"), "Electronics")
+        self.category_combo.addItem(self._("category_clothing"), "Clothing")
+        self.category_combo.addItem(self._("category_furniture"), "Furniture")
         self.price_spin = QDoubleSpinBox()
         self.price_spin.setRange(0, 1_000_000)
         self.price_spin.setDecimals(2)
@@ -181,7 +349,7 @@ class ProductDialog(QDialog):
         # Category-specific controls
         self.warranty_spin = QSpinBox()
         self.warranty_spin.setRange(0, 10)
-        self.wifi_check = QCheckBox("Wi-Fi enabled")
+        self.wifi_check = QCheckBox(self._("wifi"))
 
         self.size_combo = QComboBox()
         self.size_combo.addItems(["XS", "S", "M", "L", "XL"])
@@ -190,26 +358,26 @@ class ProductDialog(QDialog):
         self.weight_spin = QDoubleSpinBox()
         self.weight_spin.setRange(0, 1000)
         self.weight_spin.setDecimals(2)
-        self.assembled_check = QCheckBox("Delivered assembled")
+        self.assembled_check = QCheckBox(self._("assembled"))
 
         # Radio buttons to choose delivery option (fulfills RadioButton requirement)
-        self.delivery_standard = QRadioButton("Standard delivery")
-        self.delivery_express = QRadioButton("Express delivery")
+        self.delivery_standard = QRadioButton(self._("standard_delivery"))
+        self.delivery_express = QRadioButton(self._("express_delivery"))
         self.delivery_standard.setChecked(True)
 
         form = QFormLayout()
-        form.addRow("Name:", self.name_edit)
-        form.addRow("Category:", self.category_combo)
-        form.addRow("Price:", self.price_spin)
-        form.addRow("Stock:", self.stock_spin)
-        form.addRow("Manufacturer:", self.mfr_edit)
-        form.addRow("Warranty (years):", self.warranty_spin)
+        form.addRow(self._("name") + ":", self.name_edit)
+        form.addRow(self._("category") + ":", self.category_combo)
+        form.addRow(self._("price") + ":", self.price_spin)
+        form.addRow(self._("stock") + ":", self.stock_spin)
+        form.addRow(self._("manufacturer") + ":", self.mfr_edit)
+        form.addRow(self._("warranty"), self.warranty_spin)
         form.addRow("", self.wifi_check)
-        form.addRow("Size:", self.size_combo)
-        form.addRow("Material:", self.material_edit)
-        form.addRow("Weight (kg):", self.weight_spin)
+        form.addRow(self._("size"), self.size_combo)
+        form.addRow(self._("material"), self.material_edit)
+        form.addRow(self._("weight"), self.weight_spin)
         form.addRow("", self.assembled_check)
-        form.addRow("Delivery:", self.delivery_standard)
+        form.addRow(self._("delivery"), self.delivery_standard)
         form.addRow("", self.delivery_express)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=self)
@@ -218,14 +386,14 @@ class ProductDialog(QDialog):
         form.addRow(buttons)
 
         self.setLayout(form)
-        self.category_combo.currentTextChanged.connect(self.on_category_change)
-        self.on_category_change(self.category_combo.currentText())
+        self.category_combo.currentIndexChanged.connect(lambda _: self.on_category_change(self.category_combo.currentData()))
+        self.on_category_change(self.category_combo.currentData())
 
         if product:
             self.fill_from_product(product)
 
     def on_category_change(self, category: str) -> None:
-        self.selected_category = category
+        self.selected_category = category or "Electronics"
         # Show/hide relevant controls
         is_electronics = category == "Electronics"
         is_clothing = category == "Clothing"
@@ -239,7 +407,9 @@ class ProductDialog(QDialog):
 
     def fill_from_product(self, product: Product) -> None:
         self.name_edit.setText(product.name)
-        self.category_combo.setCurrentText(product.category)
+        idx = self.category_combo.findData(product.category)
+        if idx >= 0:
+            self.category_combo.setCurrentIndex(idx)
         self.price_spin.setValue(product.price)
         self.stock_spin.setValue(product.stock)
         self.mfr_edit.setText(product.manufacturer)
@@ -256,7 +426,7 @@ class ProductDialog(QDialog):
     def build_product(self) -> Product:
         name = self.name_edit.text().strip()
         if not name:
-            raise ValueError("Name is required")
+            raise ValueError(self._("name_required"))
         mfr = self.mfr_edit.text().strip() or "Unknown"
         price = self.price_spin.value()
         stock = self.stock_spin.value()
@@ -279,7 +449,7 @@ class ProductDialog(QDialog):
                 stock=stock,
                 manufacturer=mfr,
                 size=self.size_combo.currentText(),
-                material=self.material_edit.text().strip() or "Cotton",
+                material=self.material_edit.text().strip() or self._("default_material"),
             )
         return Furniture(
             name=name,
@@ -295,24 +465,27 @@ class ProductDialog(QDialog):
 class CheckoutDialog(QDialog):
     """Dialog uses TextBox, ComboBox, CheckBox, RadioButton as required."""
 
-    def __init__(self, parent: QWidget = None) -> None:
+    def __init__(self, parent: QWidget = None, translate: Callable[[str], str] = lambda k: k) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Checkout")
+        self._ = translate
+        self.setWindowTitle(self._("place_order"))
         self.name_edit = QLineEdit()
         self.contact_edit = QLineEdit()
         self.status_combo = QComboBox()
-        self.status_combo.addItems([OrderStatus.NEW, OrderStatus.PAID, OrderStatus.SHIPPED])
-        self.express_check = QCheckBox("Express shipping")
-        self.cash_radio = QRadioButton("Cash")
-        self.card_radio = QRadioButton("Card")
+        self.status_combo.addItem(self._("status_new"), OrderStatus.NEW)
+        self.status_combo.addItem(self._("status_paid"), OrderStatus.PAID)
+        self.status_combo.addItem(self._("status_shipped"), OrderStatus.SHIPPED)
+        self.express_check = QCheckBox(self._("express_delivery"))
+        self.cash_radio = QRadioButton(self._("payment_cash"))
+        self.card_radio = QRadioButton(self._("payment_card"))
         self.card_radio.setChecked(True)
 
         form = QFormLayout()
-        form.addRow("Customer name:", self.name_edit)
-        form.addRow("Contact info:", self.contact_edit)
-        form.addRow("Initial status:", self.status_combo)
-        form.addRow("Shipping:", self.express_check)
-        form.addRow("Payment:", self.card_radio)
+        form.addRow(self._("customer_name"), self.name_edit)
+        form.addRow(self._("contact"), self.contact_edit)
+        form.addRow(self._("status"), self.status_combo)
+        form.addRow(self._("shipping"), self.express_check)
+        form.addRow(self._("payment"), self.card_radio)
         form.addRow("", self.cash_radio)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=self)
@@ -322,7 +495,7 @@ class CheckoutDialog(QDialog):
         self.setLayout(form)
 
     def build_customer(self) -> Customer:
-        name = self.name_edit.text().strip() or "Guest"
+        name = self.name_edit.text().strip() or self._("guest")
         contact = self.contact_edit.text().strip()
         return Customer(full_name=name, contact=contact)
 
@@ -330,7 +503,8 @@ class CheckoutDialog(QDialog):
         return "Card" if self.card_radio.isChecked() else "Cash"
 
     def initial_status(self) -> str:
-        return self.status_combo.currentText()
+        data = self.status_combo.currentData()
+        return data if data else self.status_combo.currentText()
 
     def express(self) -> bool:
         return self.express_check.isChecked()
@@ -340,7 +514,9 @@ class CheckoutDialog(QDialog):
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("Online Store (PyQt)")
+        self.current_lang = "en"
+        self._ = make_translator(self.current_lang)
+        self.setWindowTitle(self._("window_title"))
         self.resize(1100, 700)
 
         self.manager = StoreManager()
@@ -350,8 +526,8 @@ class MainWindow(QMainWindow):
         for sample in self._default_products():
             self.manager.add_product(sample)
 
-        self.product_model = ProductTableModel(self.manager.products())
-        self.cart_model = CartTableModel(self.cart)
+        self.product_model = ProductTableModel(self.manager.products(), self._)
+        self.cart_model = CartTableModel(self.cart, self._)
 
         self._init_ui()
         self._refresh_totals()
@@ -368,10 +544,10 @@ class MainWindow(QMainWindow):
         table_group.addWidget(self.table)
 
         btn_row = QHBoxLayout()
-        add_btn = QPushButton("Add")
-        edit_btn = QPushButton("Edit")
-        del_btn = QPushButton("Delete")
-        add_cart_btn = QPushButton("Add to cart")
+        add_btn = QPushButton(self._("add"))
+        edit_btn = QPushButton(self._("edit"))
+        del_btn = QPushButton(self._("delete"))
+        add_cart_btn = QPushButton(self._("add_cart"))
         btn_row.addWidget(add_btn)
         btn_row.addWidget(edit_btn)
         btn_row.addWidget(del_btn)
@@ -386,42 +562,53 @@ class MainWindow(QMainWindow):
 
         # Cart and checkout
         side_group = QVBoxLayout()
-        cart_box = QGroupBox("Cart")
+        cart_box = QGroupBox(self._("cart"))
         cart_layout = QVBoxLayout()
         self.cart_table = QTableView()
         self.cart_table.setModel(self.cart_model)
         self.cart_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         cart_layout.addWidget(self.cart_table)
-        self.total_label = QLabel("Total: 0.00")
+        self.total_label = QLabel(f"{self._('total')}: 0.00")
         cart_layout.addWidget(self.total_label)
         cart_box.setLayout(cart_layout)
         side_group.addWidget(cart_box)
 
-        order_btn = QPushButton("Place order")
-        clear_cart_btn = QPushButton("Clear cart")
+        order_btn = QPushButton(self._("place_order"))
+        clear_cart_btn = QPushButton(self._("clear_cart"))
         side_group.addWidget(order_btn)
         side_group.addWidget(clear_cart_btn)
         order_btn.clicked.connect(self.on_checkout)
         clear_cart_btn.clicked.connect(self.on_clear_cart)
 
         # Reports / history
-        report_box = QGroupBox("Reports")
+        report_box = QGroupBox(self._("reports"))
         report_layout = QVBoxLayout()
         self.report_list = QListWidget()
         report_layout.addWidget(self.report_list)
-        gen_report_btn = QPushButton("Generate sales report")
+        gen_report_btn = QPushButton(self._("generate_report"))
         report_layout.addWidget(gen_report_btn)
         gen_report_btn.clicked.connect(self.on_generate_report)
         report_box.setLayout(report_layout)
         side_group.addWidget(report_box)
 
         # Persistence buttons
-        save_json_btn = QPushButton("Save JSON")
-        load_json_btn = QPushButton("Load JSON")
-        save_bin_btn = QPushButton("Save Binary")
-        load_bin_btn = QPushButton("Load Binary")
-        save_xml_btn = QPushButton("Save XML")
-        load_xml_btn = QPushButton("Load XML")
+        save_json_btn = QPushButton(self._("save_json"))
+        load_json_btn = QPushButton(self._("load_json"))
+        save_bin_btn = QPushButton(self._("save_bin"))
+        load_bin_btn = QPushButton(self._("load_bin"))
+        save_xml_btn = QPushButton(self._("save_xml"))
+        load_xml_btn = QPushButton(self._("load_xml"))
+
+        # Language switcher
+        lang_row = QHBoxLayout()
+        lang_label = QLabel(self._("language"))
+        self.lang_combo = QComboBox()
+        self.lang_combo.addItems(["en", "uk"])
+        self.lang_combo.setCurrentText(self.current_lang)
+        self.lang_combo.currentTextChanged.connect(self.on_language_changed)
+        lang_row.addWidget(lang_label)
+        lang_row.addWidget(self.lang_combo)
+        side_group.addLayout(lang_row)
 
         persist_layout = QGridLayout()
         persist_layout.addWidget(save_json_btn, 0, 0)
@@ -459,43 +646,43 @@ class MainWindow(QMainWindow):
         return rows[0].row()
 
     def on_add(self) -> None:
-        dlg = ProductDialog(self)
+        dlg = ProductDialog(self, translate=self._)
         if dlg.exec_():
             try:
                 product = dlg.build_product()
                 self.manager.add_product(product)
                 self.product_model.add_product(product)
             except Exception as ex:
-                QMessageBox.warning(self, "Validation error", str(ex))
+                QMessageBox.warning(self, self._("validation_error"), str(ex))
 
     def on_edit(self) -> None:
         row = self.selected_row()
         if row is None:
-            QMessageBox.information(self, "Select product", "Select a product to edit.")
+            QMessageBox.information(self, self._("edit"), self._("select_edit"))
             return
         product = self.product_model.product_at(row)
-        dlg = ProductDialog(self, product=product)
+        dlg = ProductDialog(self, product=product, translate=self._)
         if dlg.exec_():
             try:
                 updated = dlg.build_product()
                 self.manager.update_product(row, updated)
                 self.product_model.update_product(row, updated)
             except Exception as ex:
-                QMessageBox.warning(self, "Validation error", str(ex))
+                QMessageBox.warning(self, self._("validation_error"), str(ex))
 
     def on_delete(self) -> None:
         row = self.selected_row()
         if row is None:
-            QMessageBox.information(self, "Select product", "Select a product to delete.")
+            QMessageBox.information(self, self._("delete"), self._("select_delete"))
             return
-        if QMessageBox.question(self, "Delete", "Remove selected product?") == QMessageBox.Yes:
+        if QMessageBox.question(self, self._("delete"), self._("delete_confirm")) == QMessageBox.Yes:
             self.manager.delete_product(row)
             self.product_model.remove_product(row)
 
     def on_add_to_cart(self) -> None:
         row = self.selected_row()
         if row is None:
-            QMessageBox.information(self, "Select product", "Select a product to add to cart.")
+            QMessageBox.information(self, self._("add_cart"), self._("select_add"))
             return
         product = self.product_model.product_at(row)
         try:
@@ -505,7 +692,7 @@ class MainWindow(QMainWindow):
             self.cart_model.refresh()
             self._refresh_totals()
         except Exception as ex:
-            QMessageBox.warning(self, "Cannot add", str(ex))
+            QMessageBox.warning(self, self._("cannot_add"), str(ex))
 
     def on_clear_cart(self) -> None:
         self.cart.clear()
@@ -514,9 +701,9 @@ class MainWindow(QMainWindow):
 
     def on_checkout(self) -> None:
         if not self.cart.all_items():
-            QMessageBox.information(self, "Cart empty", "Add items to cart first.")
+            QMessageBox.information(self, self._("cart"), self._("cart_empty"))
             return
-        dlg = CheckoutDialog(self)
+        dlg = CheckoutDialog(self, translate=self._)
         if not dlg.exec_():
             return
         customer = dlg.build_customer()
@@ -529,15 +716,21 @@ class MainWindow(QMainWindow):
         self.cart.clear()
         self.cart_model.refresh()
         self._refresh_totals()
-        QMessageBox.information(self, "Order created", f"Total with fee: {payment.amount:.2f}")
+        QMessageBox.information(self, self._("order_created"), f"{self._('total')}: {payment.amount:.2f}")
 
     def on_generate_report(self) -> None:
         self.report_list.clear()
         report = self.manager.sales_report()
-        self.report_list.addItem(QListWidgetItem(f"Orders: {report['orders_count']}"))
-        self.report_list.addItem(QListWidgetItem(f"Revenue: {report['total_revenue']:.2f}"))
+        self.report_list.addItem(QListWidgetItem(f"{self._('orders_label')}: {report['orders_count']}"))
+        self.report_list.addItem(QListWidgetItem(f"{self._('revenue_label')}: {report['total_revenue']:.2f}"))
+        cat_names = {
+            "Electronics": self._("category_electronics"),
+            "Clothing": self._("category_clothing"),
+            "Furniture": self._("category_furniture"),
+        }
         for cat, amount in report["by_category"].items():
-            self.report_list.addItem(QListWidgetItem(f"{cat}: {amount:.2f}"))
+            display_cat = cat_names.get(cat, cat)
+            self.report_list.addItem(QListWidgetItem(f"{display_cat}: {amount:.2f}"))
 
     def on_save(self, filename: str, mode: str = "json") -> None:
         try:
@@ -547,9 +740,9 @@ class MainWindow(QMainWindow):
                 path = self.storage.save_binary(self.manager, filename)
             else:
                 path = self.storage.save_xml(self.manager, filename)
-            QMessageBox.information(self, "Saved", f"Data saved to {path}")
+            QMessageBox.information(self, self._("saved"), self._("data_saved").format(path=path))
         except Exception as ex:
-            QMessageBox.critical(self, "Save error", str(ex))
+            QMessageBox.critical(self, self._("save_error"), str(ex))
 
     def on_load(self, filename: str, mode: str = "json") -> None:
         try:
@@ -559,18 +752,32 @@ class MainWindow(QMainWindow):
                 self.manager = self.storage.load_binary(filename)
             else:
                 self.manager = self.storage.load_xml(filename)
-            self.product_model = ProductTableModel(self.manager.products())
+            self.product_model = ProductTableModel(self.manager.products(), self._)
             self.table.setModel(self.product_model)
             self.cart.clear()
-            self.cart_model.refresh()
+            self.cart_model = CartTableModel(self.cart, self._)
+            self.cart_table.setModel(self.cart_model)
             self._refresh_totals()
-            QMessageBox.information(self, "Loaded", f"Data loaded from {filename}")
+            QMessageBox.information(self, self._("loaded"), self._("data_loaded").format(path=filename))
         except Exception as ex:
-            QMessageBox.critical(self, "Load error", str(ex))
+            QMessageBox.critical(self, self._("load_error"), str(ex))
 
     def _refresh_totals(self) -> None:
         total = self.cart.total()
-        self.total_label.setText(f"Total: {total:.2f}")
+        self.total_label.setText(f"{self._('total')}: {total:.2f}")
+
+    def on_language_changed(self, lang: str) -> None:
+        self.current_lang = lang
+        self._ = make_translator(lang)
+        self.setWindowTitle(self._("window_title"))
+        # Rebuild models with translated headers
+        self.product_model = ProductTableModel(self.manager.products(), self._)
+        self.table.setModel(self.product_model)
+        self.cart_model = CartTableModel(self.cart, self._)
+        self.cart_table.setModel(self.cart_model)
+        # Update static labels/buttons
+        self._init_ui()
+        self._refresh_totals()
 
 
 def main() -> None:

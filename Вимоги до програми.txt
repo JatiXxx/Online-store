@@ -1,4 +1,4 @@
-                        ------------------
+﻿                        ------------------
                         Вимоги до програми
                         ------------------
 1.  В програмі повинно бути реалізовано: додаток Windows з графічним
@@ -45,7 +45,7 @@ ComboBox, RadioButton.
 -   Вимога 2, 3.
     app/models.py Product інкапсулює приватні поля (_name string, 
     _price float, _stock int, _category, _manufacturer) з 
-    геттерами/сеттерами, має >4 методи (restock, purchase, 
+    геттерами/сеттерами, має 4+ методи (restock, purchase, 
     base_price_with_tax, discount_price, compare_to тощо) та конструктор 
     без аргументів через параметри за замовчуванням
 
@@ -61,7 +61,7 @@ ComboBox, RadioButton.
 -   Вимога 6, 7, 11b, 12.
     Абстрактні класи: Comparable і Product (specific_discount_rate abstract); 
     віртуальні методи: discount_price перевизначається в Electronics, 
-    викликаючи super(); specific_discount_rate перевизначається у всіх підкласах
+    викликаючи super(); specific_discount_rate перевизначено в Electronics/Clothing/Furniture — динамічний поліморфізм
 
 -   Вимога 8.
     Захищений член _base_discount, що використовується підкласами
@@ -69,6 +69,11 @@ ComboBox, RadioButton.
 -   Вимога 9, 10, 11a.
     Ієрархія успадкування з 3+ класами: Product → Electronics, Clothing, 
     Furniture; реалізований інтерфейс Comparable, що не належить до бібліотеки
+
+-   Вимога 12.
+    Різні правила знижок у підкласах: Product.discount_price викликає
+    specific_discount_rate, який у Electronics залежить від гарантії/Wi‑Fi,
+    у Clothing — від матеріалу, у Furniture — від ваги; це динамічний поліморфізм.
 
 -   Вимога 13.
     Статичний поліморфізм: Payment.calculate_fee використовує 
@@ -88,3 +93,6 @@ ComboBox, RadioButton.
     Стійкість: Сховище зберігає/завантажує JSON (текст), 
     бінарні дані (pickle) та XML; підключено в MainWindow за допомогою 
     кнопок Save/Load
+
+-   Додатково (поза вимогами).
+    Двомовна локалізація en/uk для інтерфейсу, діалогів і звітів.

@@ -5,7 +5,7 @@
       "name": "Laptop",
       "category": "Electronics",
       "price": 1200.0,
-      "stock": 3,
+      "stock": 4,
       "manufacturer": "TechCorp",
       "warranty_years": 2,
       "has_wifi": true
@@ -15,7 +15,7 @@
       "name": "Jacket",
       "category": "Clothing",
       "price": 150.0,
-      "stock": 19,
+      "stock": 20,
       "manufacturer": "Warm&Co",
       "size": "L",
       "material": "Wool"
@@ -31,5 +31,35 @@
       "assembled": false
     }
   ],
-  "orders": []
+  "orders": [
+    {
+      "customer": {
+        "full_name": "Гість",
+        "contact": ""
+      },
+      "items": [
+        {
+          "product": {
+            "type": "Electronics",
+            "name": "Laptop",
+            "category": "Electronics",
+            "price": 1200.0,
+            "stock": 4,
+            "manufacturer": "TechCorp",
+            "warranty_years": 2,
+            "has_wifi": true
+          },
+          "quantity": 1
+        }
+      ],
+      "status": "Paid",
+      "created_at": "2025-11-30T23:47:48.320745",
+      "payment": {
+        "amount": 1104.1704,
+        "method": "Card",
+        "status": "Completed",
+        "date": "2025-11-30T23:47:48.320782"
+      }
+    }
+  ]
 }
