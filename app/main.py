@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
-from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
+from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, QDate
 from PyQt5.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QHeaderView,
+    QDateEdit,
     QLabel,
     QLineEdit,
     QListWidget,
@@ -52,15 +53,18 @@ DATA_DIR = APP_DIR / "data"
 LANG: Dict[str, Dict[str, str]] = {
     "en": {
         "window_title": "Online Store",
-        "add": "Add",
-        "edit": "Edit",
-        "delete": "Delete",
+        "add": "Add product",
+        "edit": "Edit product",
+        "delete": "Delete product",
         "add_cart": "Add to cart",
         "place_order": "Place order",
         "clear_cart": "Clear cart",
         "generate_report": "Generate sales report",
+        "open_reports": "Open reports",
+        "open_orders": "Orders history",
         "cart": "Cart",
         "reports": "Reports",
+        "reports_window": "Sales reports",
         "saved": "Saved",
         "loaded": "Loaded",
         "save_json": "Save JSON",
@@ -82,6 +86,13 @@ LANG: Dict[str, Dict[str, str]] = {
         "data_loaded": "Data loaded from {path}",
         "orders_label": "Orders",
         "revenue_label": "Revenue",
+        "category_summary": "Category summary",
+        "product_summary": "Product summary",
+        "quantity_label": "Quantity",
+        "start_date": "Start date",
+        "end_date": "End date",
+        "apply_filters": "Apply filters",
+        "pcs": "pcs",
         "status_new": "New",
         "status_paid": "Paid",
         "status_shipped": "Shipped",
@@ -106,6 +117,7 @@ LANG: Dict[str, Dict[str, str]] = {
         "shipping": "Shipping:",
         "payment": "Payment:",
         "customer_name": "Customer name:",
+        "customer_id": "Customer ID",
         "contact": "Contact info:",
         "delivery": "Delivery:",
         "standard_delivery": "Standard delivery",
@@ -119,18 +131,25 @@ LANG: Dict[str, Dict[str, str]] = {
         "payment_cash": "Cash",
         "payment_card": "Card",
         "language": "Language",
+        "order_date": "Date",
+        "order_status": "Status",
+        "order_items": "Items",
+        "order_payment": "Payment",
     },
     "uk": {
         "window_title": "Онлайн-магазин",
-        "add": "Додати",
-        "edit": "Редагувати",
-        "delete": "Видалити",
+        "add": "Додати товар",
+        "edit": "Редагувати товар",
+        "delete": "Видалити товар",
         "add_cart": "До кошика",
         "place_order": "Оформити замовлення",
         "clear_cart": "Очистити кошик",
         "generate_report": "Звіт про продажі",
+        "open_reports": "Відкрити звіти",
+        "open_orders": "Історія замовлень",
         "cart": "Кошик",
         "reports": "Звіти",
+        "reports_window": "Звіти про продажі",
         "saved": "Збережено",
         "loaded": "Завантажено",
         "save_json": "Зберегти JSON",
@@ -152,6 +171,13 @@ LANG: Dict[str, Dict[str, str]] = {
         "data_loaded": "Дані завантажено з {path}",
         "orders_label": "Замовлення",
         "revenue_label": "Дохід",
+        "category_summary": "Підсумок по категоріях",
+        "product_summary": "Підсумок по товарах",
+        "quantity_label": "Кількість",
+        "start_date": "Початкова дата",
+        "end_date": "Кінцева дата",
+        "apply_filters": "Застосувати фільтри",
+        "pcs": "шт",
         "status_new": "Новий",
         "status_paid": "Оплачено",
         "status_shipped": "Відправлено",
@@ -176,6 +202,7 @@ LANG: Dict[str, Dict[str, str]] = {
         "shipping": "Доставка:",
         "payment": "Оплата:",
         "customer_name": "ПІБ клієнта:",
+        "customer_id": "ID клієнта",
         "contact": "Контакти:",
         "delivery": "Доставка:",
         "standard_delivery": "Стандартна доставка",
@@ -189,6 +216,10 @@ LANG: Dict[str, Dict[str, str]] = {
         "payment_cash": "Готівка",
         "payment_card": "Картка",
         "language": "Мова",
+        "order_date": "Дата",
+        "order_status": "Статус",
+        "order_items": "Товари",
+        "order_payment": "Оплата",
     },
 }
 
@@ -351,6 +382,135 @@ class CartTableModel(QAbstractTableModel):
         self.layoutChanged.emit()
 
 
+# ---------- Reports window ----------
+class ReportWindow(QDialog):
+    def __init__(self, manager: StoreManager, translate: Callable[[str], str], parent: QWidget = None) -> None:
+        super().__init__(parent)
+        self.manager = manager
+        self._ = translate
+        self.setWindowTitle(self._("reports_window"))
+        self.resize(700, 500)
+
+        # Filters
+        self.start_date = QDateEdit()
+        self.start_date.setCalendarPopup(True)
+        self.start_date.setDate(QDate.currentDate().addMonths(-1))
+        self.end_date = QDateEdit()
+        self.end_date.setCalendarPopup(True)
+        self.end_date.setDate(QDate.currentDate())
+
+        # Category filter
+        self.category_list = QListWidget()
+        self.category_list.setSelectionMode(QListWidget.MultiSelection)
+        self.category_list.setMaximumHeight(90)
+        for cat in sorted({p.category for p in self.manager.products()}):
+            key = f"category_{cat.lower()}"
+            display = self._(key) if key in LANG.get("en", {}) else cat
+            item = QListWidgetItem(display)
+            item.setData(Qt.UserRole, cat)
+            item.setCheckState(Qt.Unchecked)
+            self.category_list.addItem(item)
+
+        filter_layout = QGridLayout()
+        filter_layout.addWidget(QLabel(self._("start_date")), 0, 0)
+        filter_layout.addWidget(self.start_date, 0, 1)
+        filter_layout.addWidget(QLabel(self._("end_date")), 1, 0)
+        filter_layout.addWidget(self.end_date, 1, 1)
+        filter_layout.addWidget(QLabel(self._("category")), 2, 0)
+        filter_layout.addWidget(self.category_list, 2, 1)
+
+        apply_btn = QPushButton(self._("apply_filters"))
+        apply_btn.clicked.connect(self.refresh)
+
+        # Summary tables
+        self.category_table = QListWidget()
+        self.product_table = QListWidget()
+        self.total_label = QLabel()
+        layout = QVBoxLayout()
+        layout.addLayout(filter_layout)
+        layout.addWidget(apply_btn)
+        layout.addWidget(QLabel(self._("category_summary")))
+        layout.addWidget(self.category_table)
+        layout.addWidget(QLabel(self._("product_summary")))
+        layout.addWidget(self.product_table)
+        layout.addWidget(self.total_label)
+        self.setLayout(layout)
+        self.refresh()
+
+    def selected_categories(self) -> List[str]:
+        names: List[str] = []
+        for i in range(self.category_list.count()):
+            item = self.category_list.item(i)
+            if item.checkState() == Qt.Checked:
+                names.append(item.data(Qt.UserRole) or item.text())
+        return names
+
+    def refresh(self) -> None:
+        try:
+            start = self.start_date.date().toPyDate()
+            end = self.end_date.date().toPyDate()
+            categories = self.selected_categories()
+            report = self.manager.sales_report_filtered(start=start, end=end, categories=categories)
+
+            self.category_table.clear()
+            self.product_table.clear()
+            cat_qty = report["by_category_qty"]
+            cat_amt = report["by_category_amount"]
+            for cat, qty in cat_qty.items():
+                amount = cat_amt.get(cat, 0.0)
+                self.category_table.addItem(f"{cat}: {qty} {self._('pcs')}, {amount:.2f}")
+            for name, amount in report.get("by_product_amount", {}).items():
+                qty = report.get("by_product_qty", {}).get(name, 0)
+                self.product_table.addItem(f"{name}: {qty} {self._('pcs')}, {amount:.2f}")
+            self.total_label.setText(f"{self._('total')}: {report.get('total_revenue', 0.0):.2f}")
+        except Exception as ex:
+            QMessageBox.critical(self, self._("save_error"), str(ex))
+
+
+# ---------- Orders history window ----------
+class OrderHistoryWindow(QDialog):
+    def __init__(self, manager: StoreManager, translate: Callable[[str], str], parent: QWidget = None) -> None:
+        super().__init__(parent)
+        self.manager = manager
+        self._ = translate
+        self.setWindowTitle(self._("open_orders") if "open_orders" in LANG.get("en", {}) else "Orders")
+        self.resize(700, 500)
+
+        self.orders_list = QListWidget()
+        self.details_list = QListWidget()
+        self.orders_list.currentRowChanged.connect(self.show_details)
+
+        layout = QHBoxLayout()
+        layout.addWidget(self.orders_list, 1)
+        layout.addWidget(self.details_list, 2)
+        self.setLayout(layout)
+
+        self.load_orders()
+
+    def load_orders(self) -> None:
+        self.orders_list.clear()
+        for order in self.manager.orders():
+            label = f"{order.customer.customer_id} | {order.customer.full_name} | {order.created_at.date()} | {order.status}"
+            item = QListWidgetItem(label)
+            item.setData(Qt.UserRole, order)
+            self.orders_list.addItem(item)
+
+    def show_details(self, index: int) -> None:
+        self.details_list.clear()
+        if index < 0:
+            return
+        item = self.orders_list.item(index)
+        order: Order = item.data(Qt.UserRole)
+        self.details_list.addItem(f"{self._('customer_id')}: {order.customer.customer_id}")
+        self.details_list.addItem(f"{self._('customer_name')}: {order.customer.full_name}")
+        self.details_list.addItem(f"{self._('contact')}: {order.customer.contact}")
+        self.details_list.addItem(f"{self._('order_date')}: {order.created_at}")
+        self.details_list.addItem(f"{self._('order_status')}: {order.status}")
+        self.details_list.addItem(f"{self._('order_items')}:")
+        for ci in order.items:
+            self.details_list.addItem(f"- {ci.quantity} x {ci.product.name} @ {ci.product.price:.2f} = {ci.subtotal():.2f}")
+        if order.payment:
+            self.details_list.addItem(f"{self._('order_payment')}: {order.payment.method} {order.payment.amount:.2f} ({order.payment.status})")
 # ---------- Dialogs ----------
 class ProductDialog(QDialog):
     def __init__(self, parent: QWidget = None, product: Optional[Product] = None, translate: Callable[[str], str] = lambda k: k) -> None:
@@ -566,6 +726,7 @@ class MainWindow(QMainWindow):
         self.table = QTableView()
         self.table.setModel(self.product_model)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.setSelectionMode(QTableView.ExtendedSelection)
         self.table.setSortingEnabled(True)
         table_group.addWidget(self.table)
 
@@ -573,11 +734,16 @@ class MainWindow(QMainWindow):
         add_btn = QPushButton(self._("add"))
         edit_btn = QPushButton(self._("edit"))
         del_btn = QPushButton(self._("delete"))
+        self.add_cart_qty = QSpinBox()
+        self.add_cart_qty.setRange(1, 1000)
+        self.add_cart_qty.setValue(1)
         add_cart_btn = QPushButton(self._("add_cart"))
         btn_row.addWidget(add_btn)
         btn_row.addWidget(edit_btn)
         btn_row.addWidget(del_btn)
         btn_row.addStretch()
+        btn_row.addWidget(QLabel(self._("quantity_label")))
+        btn_row.addWidget(self.add_cart_qty)
         btn_row.addWidget(add_cart_btn)
 
         add_btn.clicked.connect(self.on_add)
@@ -606,16 +772,13 @@ class MainWindow(QMainWindow):
         order_btn.clicked.connect(self.on_checkout)
         clear_cart_btn.clicked.connect(self.on_clear_cart)
 
-        # Reports / history
-        report_box = QGroupBox(self._("reports"))
-        report_layout = QVBoxLayout()
-        self.report_list = QListWidget()
-        report_layout.addWidget(self.report_list)
-        gen_report_btn = QPushButton(self._("generate_report"))
-        report_layout.addWidget(gen_report_btn)
-        gen_report_btn.clicked.connect(self.on_generate_report)
-        report_box.setLayout(report_layout)
-        side_group.addWidget(report_box)
+        # Reports / history buttons
+        open_reports_btn = QPushButton(self._("open_reports"))
+        open_orders_btn = QPushButton(self._("open_orders"))
+        open_reports_btn.clicked.connect(self.on_open_reports)
+        open_orders_btn.clicked.connect(self.on_open_orders)
+        side_group.addWidget(open_reports_btn)
+        side_group.addWidget(open_orders_btn)
 
         # Persistence buttons
         save_json_btn = QPushButton(self._("save_json"))
@@ -706,19 +869,25 @@ class MainWindow(QMainWindow):
             self.product_model.remove_product(row)
 
     def on_add_to_cart(self) -> None:
-        row = self.selected_row()
-        if row is None:
+        sel = self.table.selectionModel().selectedRows()
+        if not sel:
             QMessageBox.information(self, self._("add_cart"), self._("select_add"))
             return
-        product = self.product_model.product_at(row)
-        try:
-            product.purchase(1)
-            self.cart.add_item(product, 1)
-            self.product_model.dataChanged.emit(self.product_model.index(row, 0), self.product_model.index(row, self.product_model.columnCount() - 1))
-            self.cart_model.refresh()
-            self._refresh_totals()
-        except Exception as ex:
-            QMessageBox.warning(self, self._("cannot_add"), str(ex))
+        qty = self.add_cart_qty.value()
+        errors = []
+        for index in sel:
+            row = index.row()
+            product = self.product_model.product_at(row)
+            try:
+                product.purchase(qty)
+                self.cart.add_item(product, qty)
+                self.product_model.dataChanged.emit(self.product_model.index(row, 0), self.product_model.index(row, self.product_model.columnCount() - 1))
+            except Exception as ex:
+                errors.append(f"{product.name}: {ex}")
+        self.cart_model.refresh()
+        self._refresh_totals()
+        if errors:
+            QMessageBox.warning(self, self._("cannot_add"), "\n".join(errors))
 
     def on_clear_cart(self) -> None:
         self.cart.clear()
@@ -743,20 +912,6 @@ class MainWindow(QMainWindow):
         self.cart_model.refresh()
         self._refresh_totals()
         QMessageBox.information(self, self._("order_created"), f"{self._('total')}: {payment.amount:.2f}")
-
-    def on_generate_report(self) -> None:
-        self.report_list.clear()
-        report = self.manager.sales_report()
-        self.report_list.addItem(QListWidgetItem(f"{self._('orders_label')}: {report['orders_count']}"))
-        self.report_list.addItem(QListWidgetItem(f"{self._('revenue_label')}: {report['total_revenue']:.2f}"))
-        cat_names = {
-            "Electronics": self._("category_electronics"),
-            "Clothing": self._("category_clothing"),
-            "Furniture": self._("category_furniture"),
-        }
-        for cat, amount in report["by_category"].items():
-            display_cat = cat_names.get(cat, cat)
-            self.report_list.addItem(QListWidgetItem(f"{display_cat}: {amount:.2f}"))
 
     def on_save(self, filename: str, mode: str = "json") -> None:
         try:
@@ -804,6 +959,14 @@ class MainWindow(QMainWindow):
         # Update static labels/buttons
         self._init_ui()
         self._refresh_totals()
+
+    def on_open_reports(self) -> None:
+        dlg = ReportWindow(self.manager, self._, self)
+        dlg.exec_()
+
+    def on_open_orders(self) -> None:
+        dlg = OrderHistoryWindow(self.manager, self._, self)
+        dlg.exec_()
 
 
 def main() -> None:

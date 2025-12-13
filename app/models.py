@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import uuid
 import json
 import pickle
 from abc import ABC, abstractmethod
@@ -399,7 +400,7 @@ class Order:
 
     def to_dict(self, include_customer: bool = True) -> Dict[str, Any]:
         return {
-            "customer": self.customer.to_dict(include_history=False) if include_customer else {"full_name": self.customer.full_name, "contact": self.customer.contact},
+            "customer": self.customer.to_dict(include_history=False) if include_customer else {"full_name": self.customer.full_name, "contact": self.customer.contact, "customer_id": self.customer.customer_id},
             "items": [
                 {"product": item.product.to_dict(), "quantity": item.quantity} for item in self.items
             ],
@@ -426,9 +427,10 @@ class Order:
 
 
 class Customer:
-    def __init__(self, full_name: str = "", contact: str = "") -> None:
+    def __init__(self, full_name: str = "", contact: str = "", customer_id: Optional[str] = None) -> None:
         self._full_name = full_name
         self._contact = contact
+        self._customer_id = customer_id or str(uuid.uuid4())
         self._history: List[Order] = []
 
     @property
@@ -447,6 +449,14 @@ class Customer:
     def contact(self, value: str) -> None:
         self._contact = value
 
+    @property
+    def customer_id(self) -> str:
+        return self._customer_id
+
+    @customer_id.setter
+    def customer_id(self, value: str) -> None:
+        self._customer_id = value or self._customer_id
+
     def add_order(self, order: Order) -> None:
         self._history.append(order)
 
@@ -460,6 +470,7 @@ class Customer:
         data = {
             "full_name": self.full_name,
             "contact": self.contact,
+            "customer_id": self.customer_id,
         }
         if include_history:
             data["history"] = [order.to_dict(include_customer=False) for order in self._history]
@@ -467,7 +478,7 @@ class Customer:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Customer":
-        c = cls(full_name=data.get("full_name", ""), contact=data.get("contact", ""))
+        c = cls(full_name=data.get("full_name", ""), contact=data.get("contact", ""), customer_id=data.get("customer_id"))
         for order_data in data.get("history", []):
             c.add_order(Order.from_dict(order_data))
         return c
@@ -498,14 +509,71 @@ class StoreManager:
         order.customer.add_order(order)
 
     def sales_report(self) -> Dict[str, Any]:
-        by_category: Dict[str, float] = {}
+        by_category_amount: Dict[str, float] = {}
+        by_category_qty: Dict[str, int] = {}
+        by_product_qty: Dict[str, int] = {}
+        by_product_amount: Dict[str, float] = {}
         for order in self._orders:
             for item in order.items:
-                by_category[item.product.category] = by_category.get(item.product.category, 0.0) + item.subtotal()
+                cat = item.product.category
+                by_category_amount[cat] = by_category_amount.get(cat, 0.0) + item.subtotal()
+                by_category_qty[cat] = by_category_qty.get(cat, 0) + item.quantity
+                by_product_qty[item.product.name] = by_product_qty.get(item.product.name, 0) + item.quantity
+                by_product_amount[item.product.name] = by_product_amount.get(item.product.name, 0.0) + item.subtotal()
         return {
             "orders_count": len(self._orders),
             "total_revenue": sum(o.total_amount() for o in self._orders),
-            "by_category": by_category,
+            "by_category_amount": by_category_amount,
+            "by_category_qty": by_category_qty,
+            "by_product_qty": by_product_qty,
+            "by_product_amount": by_product_amount,
+        }
+
+    def sales_report_filtered(
+        self,
+        start: Optional[datetime.date] = None,
+        end: Optional[datetime.date] = None,
+        product_names: Optional[List[str]] = None,
+        categories: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        product_set = set(product_names) if product_names else None
+        category_set = set(categories) if categories else None
+        def in_range(dt: datetime.datetime) -> bool:
+            d = dt.date()
+            if start and d < start:
+                return False
+            if end and d > end:
+                return False
+            return True
+
+        filtered_orders = [
+            o for o in self._orders
+            if in_range(o.created_at)
+            and (not product_set or any(item.product.name in product_set for item in o.items))
+            and (not category_set or any(item.product.category in category_set for item in o.items))
+        ]
+        by_category_amount: Dict[str, float] = {}
+        by_category_qty: Dict[str, int] = {}
+        by_product_qty: Dict[str, int] = {}
+        by_product_amount: Dict[str, float] = {}
+        for order in filtered_orders:
+            for item in order.items:
+                if product_set and item.product.name not in product_set:
+                    continue
+                if category_set and item.product.category not in category_set:
+                    continue
+                cat = item.product.category
+                by_category_amount[cat] = by_category_amount.get(cat, 0.0) + item.subtotal()
+                by_category_qty[cat] = by_category_qty.get(cat, 0) + item.quantity
+                by_product_qty[item.product.name] = by_product_qty.get(item.product.name, 0) + item.quantity
+                by_product_amount[item.product.name] = by_product_amount.get(item.product.name, 0.0) + item.subtotal()
+        return {
+            "orders_count": len(filtered_orders),
+            "total_revenue": sum(o.total_amount() for o in filtered_orders),
+            "by_category_amount": by_category_amount,
+            "by_category_qty": by_category_qty,
+            "by_product_qty": by_product_qty,
+            "by_product_amount": by_product_amount,
         }
 
     def products(self) -> List[Product]:

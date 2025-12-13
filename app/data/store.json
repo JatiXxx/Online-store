@@ -2,63 +2,533 @@
   "products": [
     {
       "type": "Electronics",
-      "name": "Laptop",
+      "name": "Laptop-1",
       "category": "Electronics",
-      "price": 1200.0,
-      "stock": 4,
+      "price": 800.0,
+      "stock": 2,
+      "manufacturer": "TechCorp",
+      "warranty_years": 1,
+      "has_wifi": false
+    },
+    {
+      "type": "Electronics",
+      "name": "Laptop-2",
+      "category": "Electronics",
+      "price": 850.0,
+      "stock": 6,
       "manufacturer": "TechCorp",
       "warranty_years": 2,
       "has_wifi": true
     },
     {
+      "type": "Electronics",
+      "name": "Laptop-3",
+      "category": "Electronics",
+      "price": 900.0,
+      "stock": 4,
+      "manufacturer": "TechCorp",
+      "warranty_years": 3,
+      "has_wifi": false
+    },
+    {
+      "type": "Electronics",
+      "name": "Laptop-4",
+      "category": "Electronics",
+      "price": 950.0,
+      "stock": 5,
+      "manufacturer": "TechCorp",
+      "warranty_years": 1,
+      "has_wifi": true
+    },
+    {
+      "type": "Electronics",
+      "name": "Laptop-5",
+      "category": "Electronics",
+      "price": 1000.0,
+      "stock": 6,
+      "manufacturer": "TechCorp",
+      "warranty_years": 2,
+      "has_wifi": false
+    },
+    {
+      "type": "Electronics",
+      "name": "Laptop-6",
+      "category": "Electronics",
+      "price": 1050.0,
+      "stock": 4,
+      "manufacturer": "TechCorp",
+      "warranty_years": 3,
+      "has_wifi": true
+    },
+    {
+      "type": "Electronics",
+      "name": "Laptop-7",
+      "category": "Electronics",
+      "price": 1100.0,
+      "stock": 8,
+      "manufacturer": "TechCorp",
+      "warranty_years": 1,
+      "has_wifi": false
+    },
+    {
+      "type": "Electronics",
+      "name": "Laptop-8",
+      "category": "Electronics",
+      "price": 1150.0,
+      "stock": 12,
+      "manufacturer": "TechCorp",
+      "warranty_years": 2,
+      "has_wifi": true
+    },
+    {
+      "type": "Electronics",
+      "name": "Laptop-9",
+      "category": "Electronics",
+      "price": 1200.0,
+      "stock": 13,
+      "manufacturer": "TechCorp",
+      "warranty_years": 3,
+      "has_wifi": false
+    },
+    {
+      "type": "Electronics",
+      "name": "Laptop-10",
+      "category": "Electronics",
+      "price": 1250.0,
+      "stock": 14,
+      "manufacturer": "TechCorp",
+      "warranty_years": 1,
+      "has_wifi": true
+    },
+    {
       "type": "Clothing",
-      "name": "Jacket",
+      "name": "Jacket-1",
       "category": "Clothing",
-      "price": 150.0,
-      "stock": 20,
-      "manufacturer": "Warm&Co",
+      "price": 120.0,
+      "stock": 15,
+      "manufacturer": "ClothCo",
+      "size": "S",
+      "material": "Wool"
+    },
+    {
+      "type": "Clothing",
+      "name": "Jacket-2",
+      "category": "Clothing",
+      "price": 130.0,
+      "stock": 16,
+      "manufacturer": "ClothCo",
+      "size": "M",
+      "material": "Cotton"
+    },
+    {
+      "type": "Clothing",
+      "name": "Jacket-3",
+      "category": "Clothing",
+      "price": 140.0,
+      "stock": 17,
+      "manufacturer": "ClothCo",
       "size": "L",
       "material": "Wool"
     },
     {
+      "type": "Clothing",
+      "name": "Jacket-4",
+      "category": "Clothing",
+      "price": 150.0,
+      "stock": 18,
+      "manufacturer": "ClothCo",
+      "size": "XL",
+      "material": "Cotton"
+    },
+    {
+      "type": "Clothing",
+      "name": "Jacket-5",
+      "category": "Clothing",
+      "price": 160.0,
+      "stock": 19,
+      "manufacturer": "ClothCo",
+      "size": "S",
+      "material": "Wool"
+    },
+    {
+      "type": "Clothing",
+      "name": "Jacket-6",
+      "category": "Clothing",
+      "price": 170.0,
+      "stock": 20,
+      "manufacturer": "ClothCo",
+      "size": "M",
+      "material": "Cotton"
+    },
+    {
+      "type": "Clothing",
+      "name": "Jacket-7",
+      "category": "Clothing",
+      "price": 180.0,
+      "stock": 20,
+      "manufacturer": "ClothCo",
+      "size": "L",
+      "material": "Wool"
+    },
+    {
+      "type": "Clothing",
+      "name": "Jacket-8",
+      "category": "Clothing",
+      "price": 190.0,
+      "stock": 21,
+      "manufacturer": "ClothCo",
+      "size": "XL",
+      "material": "Cotton"
+    },
+    {
+      "type": "Clothing",
+      "name": "Jacket-9",
+      "category": "Clothing",
+      "price": 200.0,
+      "stock": 22,
+      "manufacturer": "ClothCo",
+      "size": "S",
+      "material": "Wool"
+    },
+    {
+      "type": "Clothing",
+      "name": "Jacket-10",
+      "category": "Clothing",
+      "price": 210.0,
+      "stock": 23,
+      "manufacturer": "ClothCo",
+      "size": "M",
+      "material": "Cotton"
+    },
+    {
       "type": "Furniture",
-      "name": "Desk",
+      "name": "Desk-1",
       "category": "Furniture",
-      "price": 300.0,
+      "price": 250.0,
+      "stock": 8,
+      "manufacturer": "Furni",
+      "weight": 30.0,
+      "assembled": true
+    },
+    {
+      "type": "Furniture",
+      "name": "Desk-2",
+      "category": "Furniture",
+      "price": 270.0,
+      "stock": 9,
+      "manufacturer": "Furni",
+      "weight": 35.0,
+      "assembled": false
+    },
+    {
+      "type": "Furniture",
+      "name": "Desk-3",
+      "category": "Furniture",
+      "price": 290.0,
       "stock": 10,
       "manufacturer": "Furni",
+      "weight": 40.0,
+      "assembled": true
+    },
+    {
+      "type": "Furniture",
+      "name": "Desk-4",
+      "category": "Furniture",
+      "price": 310.0,
+      "stock": 7,
+      "manufacturer": "Furni",
+      "weight": 45.0,
+      "assembled": false
+    },
+    {
+      "type": "Furniture",
+      "name": "Desk-5",
+      "category": "Furniture",
+      "price": 330.0,
+      "stock": 8,
+      "manufacturer": "Furni",
+      "weight": 50.0,
+      "assembled": true
+    },
+    {
+      "type": "Furniture",
+      "name": "Desk-6",
+      "category": "Furniture",
+      "price": 350.0,
+      "stock": 9,
+      "manufacturer": "Furni",
       "weight": 55.0,
+      "assembled": false
+    },
+    {
+      "type": "Furniture",
+      "name": "Desk-7",
+      "category": "Furniture",
+      "price": 370.0,
+      "stock": 10,
+      "manufacturer": "Furni",
+      "weight": 60.0,
+      "assembled": true
+    },
+    {
+      "type": "Furniture",
+      "name": "Desk-8",
+      "category": "Furniture",
+      "price": 390.0,
+      "stock": 15,
+      "manufacturer": "Furni",
+      "weight": 65.0,
+      "assembled": false
+    },
+    {
+      "type": "Furniture",
+      "name": "Desk-9",
+      "category": "Furniture",
+      "price": 410.0,
+      "stock": 16,
+      "manufacturer": "Furni",
+      "weight": 70.0,
+      "assembled": true
+    },
+    {
+      "type": "Furniture",
+      "name": "Desk-10",
+      "category": "Furniture",
+      "price": 430.0,
+      "stock": 17,
+      "manufacturer": "Furni",
+      "weight": 75.0,
       "assembled": false
     }
   ],
   "orders": [
     {
       "customer": {
-        "full_name": "Гість",
-        "contact": ""
+        "full_name": "Кожухар Олександр",
+        "contact": "5656651",
+        "customer_id": "474586bc-7786-418c-9ffc-24fb6864c81a"
       },
       "items": [
         {
           "product": {
             "type": "Electronics",
-            "name": "Laptop",
+            "name": "Laptop-1",
             "category": "Electronics",
-            "price": 1200.0,
-            "stock": 4,
+            "price": 800.0,
+            "stock": 2,
             "manufacturer": "TechCorp",
-            "warranty_years": 2,
+            "warranty_years": 1,
+            "has_wifi": false
+          },
+          "quantity": 3
+        },
+        {
+          "product": {
+            "type": "Electronics",
+            "name": "Laptop-6",
+            "category": "Electronics",
+            "price": 1050.0,
+            "stock": 7,
+            "manufacturer": "TechCorp",
+            "warranty_years": 3,
             "has_wifi": true
+          },
+          "quantity": 3
+        },
+        {
+          "product": {
+            "type": "Electronics",
+            "name": "Laptop-7",
+            "category": "Electronics",
+            "price": 1100.0,
+            "stock": 8,
+            "manufacturer": "TechCorp",
+            "warranty_years": 1,
+            "has_wifi": false
+          },
+          "quantity": 3
+        },
+        {
+          "product": {
+            "type": "Clothing",
+            "name": "Jacket-7",
+            "category": "Clothing",
+            "price": 180.0,
+            "stock": 20,
+            "manufacturer": "ClothCo",
+            "size": "L",
+            "material": "Wool"
+          },
+          "quantity": 1
+        },
+        {
+          "product": {
+            "type": "Clothing",
+            "name": "Jacket-8",
+            "category": "Clothing",
+            "price": 190.0,
+            "stock": 21,
+            "manufacturer": "ClothCo",
+            "size": "XL",
+            "material": "Cotton"
+          },
+          "quantity": 1
+        },
+        {
+          "product": {
+            "type": "Clothing",
+            "name": "Jacket-9",
+            "category": "Clothing",
+            "price": 200.0,
+            "stock": 22,
+            "manufacturer": "ClothCo",
+            "size": "S",
+            "material": "Wool"
+          },
+          "quantity": 1
+        },
+        {
+          "product": {
+            "type": "Clothing",
+            "name": "Jacket-10",
+            "category": "Clothing",
+            "price": 210.0,
+            "stock": 23,
+            "manufacturer": "ClothCo",
+            "size": "M",
+            "material": "Cotton"
           },
           "quantity": 1
         }
       ],
       "status": "Paid",
-      "created_at": "2025-11-30T23:47:48.320745",
+      "created_at": "2025-12-08T11:54:44.562197",
       "payment": {
-        "amount": 1104.1704,
+        "amount": 9177.771299999999,
+        "method": "Cash",
+        "status": "Completed",
+        "date": "2025-12-08T11:54:44.562236"
+      }
+    },
+    {
+      "customer": {
+        "full_name": "Гість",
+        "contact": "888888",
+        "customer_id": "277b8e69-23bc-460c-85d0-f92faadd7a85"
+      },
+      "items": [
+        {
+          "product": {
+            "type": "Electronics",
+            "name": "Laptop-6",
+            "category": "Electronics",
+            "price": 1050.0,
+            "stock": 4,
+            "manufacturer": "TechCorp",
+            "warranty_years": 3,
+            "has_wifi": true
+          },
+          "quantity": 3
+        },
+        {
+          "product": {
+            "type": "Electronics",
+            "name": "Laptop-5",
+            "category": "Electronics",
+            "price": 1000.0,
+            "stock": 6,
+            "manufacturer": "TechCorp",
+            "warranty_years": 2,
+            "has_wifi": false
+          },
+          "quantity": 3
+        },
+        {
+          "product": {
+            "type": "Electronics",
+            "name": "Laptop-4",
+            "category": "Electronics",
+            "price": 950.0,
+            "stock": 5,
+            "manufacturer": "TechCorp",
+            "warranty_years": 1,
+            "has_wifi": true
+          },
+          "quantity": 3
+        },
+        {
+          "product": {
+            "type": "Electronics",
+            "name": "Laptop-3",
+            "category": "Electronics",
+            "price": 900.0,
+            "stock": 4,
+            "manufacturer": "TechCorp",
+            "warranty_years": 3,
+            "has_wifi": false
+          },
+          "quantity": 3
+        },
+        {
+          "product": {
+            "type": "Furniture",
+            "name": "Desk-7",
+            "category": "Furniture",
+            "price": 370.0,
+            "stock": 10,
+            "manufacturer": "Furni",
+            "weight": 60.0,
+            "assembled": true
+          },
+          "quantity": 4
+        },
+        {
+          "product": {
+            "type": "Furniture",
+            "name": "Desk-6",
+            "category": "Furniture",
+            "price": 350.0,
+            "stock": 9,
+            "manufacturer": "Furni",
+            "weight": 55.0,
+            "assembled": false
+          },
+          "quantity": 4
+        },
+        {
+          "product": {
+            "type": "Furniture",
+            "name": "Desk-5",
+            "category": "Furniture",
+            "price": 330.0,
+            "stock": 8,
+            "manufacturer": "Furni",
+            "weight": 50.0,
+            "assembled": true
+          },
+          "quantity": 4
+        },
+        {
+          "product": {
+            "type": "Furniture",
+            "name": "Desk-4",
+            "category": "Furniture",
+            "price": 310.0,
+            "stock": 7,
+            "manufacturer": "Furni",
+            "weight": 45.0,
+            "assembled": false
+          },
+          "quantity": 4
+        }
+      ],
+      "status": "Paid",
+      "created_at": "2025-12-08T11:59:09.667989",
+      "payment": {
+        "amount": 16167.499799999998,
         "method": "Card",
         "status": "Completed",
-        "date": "2025-11-30T23:47:48.320782"
+        "date": "2025-12-08T11:59:09.668021"
       }
     }
   ]
