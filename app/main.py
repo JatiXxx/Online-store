@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, QDate
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -52,6 +53,8 @@ from models import (
 
 APP_DIR = Path(__file__).resolve().parent
 DATA_DIR = APP_DIR / "data"
+ICON_PATH = APP_DIR.parent / "icon.ico"
+
 
 # --- Localization ---
 LANG: Dict[str, Dict[str, str]] = {
@@ -247,6 +250,12 @@ def make_translator(lang: str) -> Callable[[str], str]:
     return lambda key: current.get(key, key)
 
 
+def localize_category(cat: str, translate: Callable[[str], str]) -> str:
+    key = f"category_{cat.lower()}" if cat else ""
+    translated = translate(key) if key else ""
+    return translated if translated and translated != key else cat
+
+
 # ---------- Table models ----------
 class ProductTableModel(QAbstractTableModel):
     def __init__(self, products: List[Product], translate: Callable[[str], str]) -> None:
@@ -280,7 +289,7 @@ class ProductTableModel(QAbstractTableModel):
             if col == 0:
                 return product.name
             if col == 1:
-                return product.category
+                return localize_category(product.category, self._translate)
             if col == 2:
                 return f"{product.price:.2f}"
             if col == 3:
@@ -407,7 +416,8 @@ class ReportWindow(QDialog):
         self.manager = manager
         self._ = translate
         self.setWindowTitle(self._("reports_window"))
-        self.resize(700, 500)
+        self.resize(900, 650)
+        self.setMinimumSize(800, 600)
 
         # Filters
         self.start_date = QDateEdit()
@@ -496,7 +506,7 @@ class ReportWindow(QDialog):
             self.category_table.setRowCount(len(cat_qty))
             for row, (cat, qty) in enumerate(cat_qty.items()):
                 amount = cat_amt.get(cat, 0.0)
-                self.category_table.setItem(row, 0, QTableWidgetItem(cat))
+                self.category_table.setItem(row, 0, QTableWidgetItem(localize_category(cat, self._)))
                 self.category_table.setItem(row, 1, QTableWidgetItem(f"{amount:.2f}"))
                 self.category_table.setItem(row, 2, QTableWidgetItem(str(qty)))
             # fill product table
@@ -508,7 +518,7 @@ class ReportWindow(QDialog):
                 self.product_table.setItem(row, 0, QTableWidgetItem(name))
                 # find category from manager products
                 cat = next((p.category for p in self.manager.products() if p.name == name), "")
-                self.product_table.setItem(row, 1, QTableWidgetItem(cat))
+                self.product_table.setItem(row, 1, QTableWidgetItem(localize_category(cat, self._)))
                 self.product_table.setItem(row, 2, QTableWidgetItem(f"{amount:.2f}"))
                 self.product_table.setItem(row, 3, QTableWidgetItem(str(qty)))
             self.total_label.setText(f"{self._('total')}: {report.get('total_revenue', 0.0):.2f}")
@@ -628,6 +638,7 @@ class ProductDialog(QDialog):
         self.warranty_spin = QSpinBox()
         self.warranty_spin.setRange(0, 10)
         self.wifi_check = QCheckBox(self._("wifi"))
+        self.wifi_check.setStyleSheet("background: transparent;")
 
         self.size_combo = QComboBox()
         self.size_combo.addItems(["XS", "S", "M", "L", "XL"])
@@ -637,26 +648,42 @@ class ProductDialog(QDialog):
         self.weight_spin.setRange(0, 1000)
         self.weight_spin.setDecimals(2)
         self.assembled_check = QCheckBox(self._("assembled"))
+        self.assembled_check.setStyleSheet("background: transparent;")
 
         # Radio buttons to choose delivery option (fulfills RadioButton requirement)
         self.delivery_standard = QRadioButton(self._("standard_delivery"))
         self.delivery_express = QRadioButton(self._("express_delivery"))
+        self.delivery_standard.setStyleSheet("background: transparent;")
+        self.delivery_express.setStyleSheet("background: transparent;")
         self.delivery_standard.setChecked(True)
 
+        def make_label(text: str) -> QLabel:
+            lbl = QLabel(text)
+            lbl.setMinimumWidth(140)
+            lbl.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            if text:
+                lbl.setStyleSheet("background:#f0f1f3; border-radius:8px; padding:6px 10px;")
+            else:
+                lbl.setStyleSheet("background: transparent; padding: 0;")
+            return lbl
+
         form = QFormLayout()
-        form.addRow(self._("name") + ":", self.name_edit)
-        form.addRow(self._("category") + ":", self.category_combo)
-        form.addRow(self._("price") + ":", self.price_spin)
-        form.addRow(self._("stock") + ":", self.stock_spin)
-        form.addRow(self._("manufacturer") + ":", self.mfr_edit)
-        form.addRow(self._("warranty"), self.warranty_spin)
-        form.addRow("", self.wifi_check)
-        form.addRow(self._("size"), self.size_combo)
-        form.addRow(self._("material"), self.material_edit)
-        form.addRow(self._("weight"), self.weight_spin)
-        form.addRow("", self.assembled_check)
-        form.addRow(self._("delivery"), self.delivery_standard)
-        form.addRow("", self.delivery_express)
+        form.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
+        form.setLabelAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        form.setFormAlignment(Qt.AlignTop)
+        form.addRow(make_label(self._("name")), self.name_edit)
+        form.addRow(make_label(self._("category")), self.category_combo)
+        form.addRow(make_label(self._("price")), self.price_spin)
+        form.addRow(make_label(self._("stock")), self.stock_spin)
+        form.addRow(make_label(self._("manufacturer")), self.mfr_edit)
+        form.addRow(make_label(self._("warranty")), self.warranty_spin)
+        form.addRow(make_label(""), self.wifi_check)
+        form.addRow(make_label(self._("size")), self.size_combo)
+        form.addRow(make_label(self._("material")), self.material_edit)
+        form.addRow(make_label(self._("weight")), self.weight_spin)
+        form.addRow(make_label(""), self.assembled_check)
+        form.addRow(make_label(self._("delivery")), self.delivery_standard)
+        form.addRow(make_label(""), self.delivery_express)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=self)
         buttons.accepted.connect(self.accept)
@@ -754,17 +781,42 @@ class CheckoutDialog(QDialog):
         self.status_combo.addItem(self._("status_paid"), OrderStatus.PAID)
         self.status_combo.addItem(self._("status_shipped"), OrderStatus.SHIPPED)
         self.express_check = QCheckBox(self._("express_delivery"))
+        self.express_check.setStyleSheet("background: transparent;")
         self.cash_radio = QRadioButton(self._("payment_cash"))
         self.card_radio = QRadioButton(self._("payment_card"))
+        self.cash_radio.setStyleSheet("background: transparent;")
+        self.card_radio.setStyleSheet("background: transparent;")
         self.card_radio.setChecked(True)
 
+        # ensure fields expand uniformly
+        for w in (self.name_edit, self.contact_edit, self.status_combo):
+            w.setSizePolicy(w.sizePolicy().horizontalPolicy(), w.sizePolicy().verticalPolicy())
+
+        payment_column = QVBoxLayout()
+        payment_column.setContentsMargins(0, 0, 0, 0)
+        payment_column.addWidget(self.card_radio)
+        payment_column.addWidget(self.cash_radio)
+
+        delivery_column = QVBoxLayout()
+        delivery_column.setContentsMargins(0, 0, 0, 0)
+        delivery_column.addWidget(self.express_check)
+
+        def make_label(text: str) -> QLabel:
+            lbl = QLabel(text)
+            lbl.setMinimumWidth(150)
+            lbl.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            lbl.setStyleSheet("background:#f0f1f3; border-radius:8px; padding:6px 10px;")
+            return lbl
+
         form = QFormLayout()
-        form.addRow(self._("customer_name"), self.name_edit)
-        form.addRow(self._("contact"), self.contact_edit)
-        form.addRow(self._("status"), self.status_combo)
-        form.addRow(self._("shipping"), self.express_check)
-        form.addRow(self._("payment"), self.card_radio)
-        form.addRow("", self.cash_radio)
+        form.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
+        form.setLabelAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        form.setFormAlignment(Qt.AlignTop)
+        form.addRow(make_label(self._("customer_name")), self.name_edit)
+        form.addRow(make_label(self._("contact")), self.contact_edit)
+        form.addRow(make_label(self._("status")), self.status_combo)
+        form.addRow(make_label(self._("shipping")), delivery_column)
+        form.addRow(make_label(self._("payment")), payment_column)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=self)
         buttons.accepted.connect(self.accept)
@@ -795,7 +847,10 @@ class MainWindow(QMainWindow):
         self.current_lang = "en"
         self._ = make_translator(self.current_lang)
         self.setWindowTitle(self._("window_title"))
+        if ICON_PATH.exists():
+            self.setWindowIcon(QIcon(str(ICON_PATH)))
         self.resize(1100, 700)
+        self.theme()
 
         self.manager = StoreManager()
         self.cart = ShoppingCart()
@@ -809,6 +864,70 @@ class MainWindow(QMainWindow):
 
         self._init_ui()
         self._refresh_totals()
+
+    def theme(self) -> None:
+        palette_bg = "#eeeeef"
+        panel_bg = "#ffffff"
+        accent = "#6c757d"
+        text = "#1f1f23"
+        border = "#e0e0e0"
+        self.setStyleSheet(
+            f"""
+            QWidget {{
+                background-color: {palette_bg};
+                color: {text};
+                font-family: -apple-system, 'SF Pro Text', 'Segoe UI', Arial, sans-serif;
+                font-size: 13px;
+            }}
+            QGroupBox, QDialog, QTableView, QListWidget, QTableWidget {{
+                background-color: {panel_bg};
+                border: 1px solid {border};
+                border-radius: 10px;
+                padding: 8px;
+            }}
+            QHeaderView::section {{
+                background: {palette_bg};
+                color: {text};
+                padding: 8px 6px;
+                border: 1px solid {border};
+                font-weight: 600;
+            }}
+            QPushButton {{
+                background-color: {accent};
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 7px 14px;
+                font-weight: 600;
+                letter-spacing: 0.2px;
+            }}
+            QPushButton:disabled {{
+                background-color: #bfc4c8;
+            }}
+            QPushButton:hover {{
+                background-color: #5a626b;
+            }}
+            QPushButton:checked {{
+                background-color: #4d545b;
+            }}
+            QLineEdit, QSpinBox, QDoubleSpinBox, QDateEdit, QComboBox {{
+                background: {panel_bg};
+                border: 1px solid {border};
+                border-radius: 6px;
+                padding: 6px 8px;
+            }}
+            QListWidget::item:selected, QTableWidget::item:selected, QTableView::item:selected {{
+                background: rgba(108, 117, 125, 0.18);
+                color: {text};
+            }}
+            QLabel {{
+                font-weight: 500;
+                border-radius: 6px;
+                padding: 2px 4px;
+            }}
+            """
+        )
+
 
     def _init_ui(self) -> None:
         central = QWidget()
