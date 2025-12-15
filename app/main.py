@@ -51,9 +51,13 @@ from models import (
     StoreManager,
 )
 
-APP_DIR = Path(__file__).resolve().parent
-DATA_DIR = APP_DIR / "data"
-ICON_PATH = APP_DIR.parent / "icon.ico"
+BASE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+DATA_DIR = BASE_DIR / "data"
+ICON_CANDIDATES = [
+    BASE_DIR / "icon.ico",
+    BASE_DIR.parent / "icon.ico",
+]
+ICON_PATH = next((p for p in ICON_CANDIDATES if p.exists()), ICON_CANDIDATES[0])
 
 
 # --- Localization ---
